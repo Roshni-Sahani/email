@@ -1,66 +1,124 @@
-import React, { useRef } from "react";
+import { useState } from "react";
+import React from "react";
 import emailjs from "@emailjs/browser";
 
-export const ContactUs = () => {
-  const form = useRef();
-
-  const sendEmail = (e) => {
-    e.preventDefault();
-
-    emailjs
-      .sendForm("service_0wuzpsi", "template_461i3f2", form.current, {
-        publicKey: "JHmRBCSILCLTZZo-G",
-      })
-      .then(
-        () => {
-          console.log("SUCCESS!");
-        },
-        (error) => {
-          console.log("FAILED.. .", error.text);
-        }
-      );
+const ContactUs = () => {
+  const [formData, setFormData] = useState({
+    name: "",
+    number: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const [formErrors, setFormErrors] = useState({
+    name: "",
+    number: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
   };
-
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const regex = {
+      name: /^[a-zA-Z\s]+$/,
+      number: /^\d{10}$/,
+    };
+    const errors = {};
+    if (!regex.name.test(formData.name)) {
+      errors.name = "Name is invalid.";
+    }
+    if (!regex.number.test(formData.number)) {
+      errors.number = "Number is invalid.";
+    }
+    setFormErrors(errors);
+    console.log(errors);
+    if (Object.keys(errors).length === 0) {
+      emailjs
+        .sendForm(
+          "service_0wuzpsi",
+          "template_461i3f2",
+          e.target,
+          "JHmRBCSILCLTZZo-G"
+        )
+        .then(
+          () => {
+            console.log("SUCCESS!");
+          },
+          (error) => {
+            console.log("FAILED.. .", error.text);
+          }
+        );
+      setShowSuccessPopup(true);
+    }
+  };
+  const form = useState();
+  const handlePopupClose = () => {
+    setShowSuccessPopup(false);
+    setFormData({
+      name: "",
+      number: "",
+      password: "",
+      confirmPassword: "",
+    });
+    setFormErrors({
+      name: "",
+      number: "",
+      password: "",
+      confirmPassword: "",
+    });
+  };
   return (
-    <div className=" flex justify-center mx-auto w-[500px] container items-center min-h-screen">
-      <form ref={form} onSubmit={sendEmail} className=" w-full mx-auto">
-        <div className="w-full">
-          <div className="w-full">
-            <label>Name</label>
+    <>
+      <div className="flex h-screen items-center justify-center mx-auto">
+        <form
+          className="registration-form bg- black py-5 px-5 rounded-5 mt-5"
+          onSubmit={handleSubmit}
+        >
+          <div className="form-group">
+            <label htmlFor="name">Name:</label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+            />
+            {formErrors.name && (
+              <p className="error-message">{formErrors.name}</p>
+            )}
           </div>
-          <input
-            type="text"
-            name="user_name"
-            className="border border-solid border-black h-[50px] w-full"
-          />
-        </div>
-        <div className="w-full">
-          <div className="w-full">
-            <label>Email</label>
+          <div className="form-group">
+            <label htmlFor="number">Number:</label>
+            <input
+              type="text"
+              id="number"
+              name="number"
+              value={formData.number}
+              onChange={handleChange}
+              className={formErrors.number ? "error" : ""}
+            />
+            {formErrors.number && (
+              <p className="error-message">{formErrors.number}</p>
+            )}
           </div>
-          <input
-            type="email"
-            name="user_email"
-            className="border border-solid border-black h-[50px] w-full"
-          />
+          <button type="submit" className="submit-button">
+            Submit
+          </button>
+        </form>
+      </div>
+      {showSuccessPopup && (
+        <div className="success-popup">
+          <p>Form submitted successfully!</p>
+          <button onClick={handlePopupClose}>Close</button>
         </div>
-        <div className="w-full">
-          <div>
-            <label>Message</label>
-          </div>
-          <textarea
-            name="message"
-            className="border border-solid border-black !h-[80px] w-full resize-none"
-          />
-        </div>
-        <div className="w-full">
-          <input
-            type="submit"
-            value="Send"
-            className="bg-blue text-white cursor-pointer rounded-md px-5 py-3"
-          />
-        </div>
-      </form>
-    </div>
+      )}
+    </>
   );
 };
+export default ContactUs;
